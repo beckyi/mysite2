@@ -4,7 +4,7 @@
 <div id="navigation">
 	<ul>
 		<li><a href="">최재은</a></li>
-		<li><a href="/mysite/gs">방명록</a></li>
-		<li><a href="/mysite/bs">게시판</a></li>
+		<li><a href="/mysite2/guestbook/list">방명록</a></li>
+		<li><a href="/mysite2/board/list">게시판</a></li>
 	</ul>
 </div>

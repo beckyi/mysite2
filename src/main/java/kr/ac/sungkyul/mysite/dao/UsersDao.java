@@ -1,242 +1,65 @@
 package kr.ac.sungkyul.mysite.dao;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
+//import java.sql.Connection;
+//import java.sql.DriverManager;
+//import java.sql.PreparedStatement;
+//import java.sql.ResultSet;
+//import java.sql.SQLException;
+//import javax.sql.DataSource;
+
+import org.apache.ibatis.session.SqlSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+//import kr.ac.sungkyul.mysite.exception.UserInfoUpdateException;
 import kr.ac.sungkyul.mysite.vo.UsersVo;
 
 @Repository
 public class UsersDao {
-	public Connection getConnection() throws SQLException{
-	      Connection conn = null;
-	      
-	      try{
-	      Class.forName("oracle.jdbc.driver.OracleDriver");
-	      String url = "jdbc:oracle:thin:@localhost:1521:xe";
-	      conn = DriverManager.getConnection(url, "webdb", "webdb");
-	      } catch (ClassNotFoundException e) {
-	         e.printStackTrace();
-	      } 
-	      
-	      return conn;
-	   }
+	
+	@Autowired
+	private SqlSession sqlSession;	//db연결
+	
+//	@Autowired
+//	private DataSource dataSource;	//인터페이스(오라클구현)
 	   
 	   public void insert(UsersVo vo) {
-	      Connection conn = null;
-	      PreparedStatement pstmt = null;
-	      
-	      try {
-	         conn = getConnection();
-	         String sql = "insert into users values(seq_users.nextval, ?, ?, ?, ?)";
-	         pstmt = conn.prepareStatement(sql);
-	         
-	         pstmt.setString(1, vo.getName());
-	         pstmt.setString(2, vo.getEmail());
-	         pstmt.setString(3, vo.getPassword());
-	         pstmt.setString(4, vo.getGender());
-	         
-	         System.out.println(vo.getName());
-	         System.out.println(vo.getEmail());
-	         System.out.println(vo.getPassword());
-	         
-	         pstmt.executeUpdate();
-	         
-	      } catch (SQLException e) {
-	         e.printStackTrace();
-	      }
+	     int count = sqlSession.insert("user.insert",vo);
+	     System.out.println(count);
 	   }
 	   
 	   public UsersVo get(String email, String password) {
-		   UsersVo vo = null;
-		   Connection conn = null;
-		   PreparedStatement pstmt = null;
-		   ResultSet rs= null;
+		   UsersVo usersvo = new UsersVo();
+		   usersvo.setEmail(email);
+		   usersvo.setPassword(password);
+		   UsersVo vo = sqlSession.selectOne("user.getByEmailAndPassword",usersvo);
 		   
-		   try{
-			   conn = getConnection();
-			   
-			   String sql = "select no, name from users where email=? and password=?";
-			   pstmt = conn.prepareStatement(sql);
-			   
-			   pstmt.setString(1, email);
-			   pstmt.setString(2, password);
-			   
-			   rs = pstmt.executeQuery();
-			
-			   if(rs.next()){
-				   Long no = rs.getLong(1);
-				   String name = rs.getString(2);
-				   
-				   System.out.println(no +" "+name);
-				   
-				   vo = new UsersVo();
-				   
-				   vo.setNo(no);
-				   vo.setName(name);
-			   }
-			   
-		   } catch(SQLException e){
-			   e.printStackTrace();
-		   } finally{
-			   try{
-				   if(pstmt != null ){
-					   pstmt.close();
-				   }
-				   if(conn != null ){
-					   conn.close();
-				   }
-			   } catch(SQLException e){
-				   e.printStackTrace();
-			   }
-		   }
+		   //만약에 피라미터로 넘겨야 할 매핑 클래스가 없는 경우
+//		   Map<String, Object> map = new HashMap<String, Object>();
+//		   map.put("email",email);
+//		   map.put("password",password);
+//		   
+//		   UsersVo uvo = sqlSession.selectOne("user.getByEmailAndPassword",map);
 		   
 		   return vo;
 	   }
 	   
 	   public UsersVo get(Long userNo){
-		   UsersVo vo = null;
-		   Connection conn = null;
-		   PreparedStatement pstmt = null;
-		   ResultSet rs= null;
-		   
-		   try{
-			   conn = getConnection();
-			   
-			   String sql = "select no, name, gender name from users where no=?";
-			   pstmt = conn.prepareStatement(sql);
-			   
-			   pstmt.setLong(1, userNo);
-			   
-			   rs = pstmt.executeQuery();
-			
-			   if(rs.next()){
-				   Long no = rs.getLong(1);
-				   String name = rs.getString(2);
-				   String gender = rs.getString(3);
-				   
-				   vo = new UsersVo();
-				   
-				   vo.setNo(no);
-				   vo.setName(name);
-				   vo.setGender(gender);
-			   }
-			   
-		   } catch(SQLException e){
-			   e.printStackTrace();
-		   } finally{
-			   try{
-				   if(pstmt != null ){
-					   pstmt.close();
-				   }
-				   if(conn != null ){
-					   conn.close();
-				   }
-			   } catch(SQLException e){
-				   e.printStackTrace();
-			   }
-		   }
+		   UsersVo vo = sqlSession.selectOne("user.getByNo",userNo);
 		   
 		   return vo;
 	   }
 	   
-	   public UsersVo update(UsersVo vo){
-		   Connection conn = null;
-		   PreparedStatement pstmt = null;
-		   
-		   try{
-			   conn = getConnection();
-			   
-			   Long no = vo.getNo();
-			   String name = vo.getName();
-			   String password = vo.getPassword();
-			   String gender = vo.getGender();
-			   
-			   boolean isPasswordEmpty = "".equals(password);
-			   
-			   String sql = null;
-			   
-			   if(isPasswordEmpty == true){
-				   sql = "update users set name = ?, gender = ? where no = ?";
-			   } else{
-				   sql= "update users set name = ?, password = ?, gender = ? where no = ?";
-			   }
-			   
-			   pstmt = conn.prepareStatement(sql);
-			   
-			   if(isPasswordEmpty == true){
-				   pstmt.setString(1, name);
-				   pstmt.setString(2, gender);
-				   pstmt.setLong(3, no);
-			   } else{
-				   pstmt.setString(1, name);
-				   pstmt.setString(2, password);
-				   pstmt.setString(3, gender);
-				   pstmt.setLong(4, no);
-			   }
-			   
-			   pstmt.executeUpdate();
-			   
-		   } catch(SQLException e){
-			   e.printStackTrace();
-		   } finally{
-			   try{
-				   if(pstmt != null ){
-					   pstmt.close();
-				   }
-				   if(conn != null ){
-					   conn.close();
-				   }
-			   } catch(SQLException e){
-				   e.printStackTrace();
-			   }
-		   }
-		   
-		   return vo;
+	   public void update(UsersVo vo){
+		   System.out.println(vo);
+		   sqlSession.update("user.update",vo);
 	   }
 	   
 	   public UsersVo get(String email){
-		   UsersVo vo = null;
-		   Connection conn = null;
-		   PreparedStatement pstmt = null;
-		   ResultSet rs = null;
-		   
-		   try{
-			   conn = getConnection();
-			   String sql = "select no, name, email from users where email = ?";
-			   pstmt= conn.prepareStatement(sql);
-			   
-			   pstmt.setString(1, email);
-			   
-			   rs = pstmt.executeQuery();
-			   
-			   if(rs.next()){
-				   vo = new UsersVo();
-				   vo.setNo(rs.getLong(1));
-				   vo.setName(rs.getString(2));
-				   vo.setEmail(rs.getString(3));
-			   }
-		   } catch(SQLException e){
-			   e.printStackTrace();
-		   } finally{
-			   try{
-				   if(rs != null){
-					   rs.close();
-				   }
-				   if(pstmt != null ){
-					   pstmt.close();
-				   }
-				   if(conn != null ){
-					   conn.close();
-				   }
-			   } catch(SQLException e){
-				   e.printStackTrace();
-			   }
-		   }
+		   UsersVo vo = sqlSession.selectOne("user.getByEmail",email);
 		   
 		   return vo;
 	   }

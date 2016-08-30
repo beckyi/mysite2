@@ -32,6 +32,26 @@
 			<version>${org.springframework-version}</version>
 		</dependency>
 
+		<!-- Spring jdbc -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>${org.springframework-version}</version>
+		</dependency>
+
+		<!-- MyBatis -->
+		<dependency>
+			<groupId>org.mybatis</groupId>
+			<artifactId>mybatis</artifactId>
+			<version>3.2.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mybatis</groupId>
+			<artifactId>mybatis-spring</artifactId>
+			<version>1.2.0</version>
+		</dependency>
+
 		<!-- Oracle JDBC Driver -->
 		<dependency>
 			<groupId>com.oracle</groupId>
@@ -46,7 +66,7 @@
 			<version>1.2</version>
 		</dependency>
 	</dependencies>
-	
+
 	<repositories>
 		<repository>
 			<id>oracle</id>
@@ -54,7 +74,7 @@
 			<url>http://maven.jahia.org/maven2</url>
 		</repository>
 	</repositories>
-	
+
 	<build>
 		<plugins>
 			<plugin>
